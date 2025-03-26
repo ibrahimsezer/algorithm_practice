@@ -26,6 +26,10 @@ def kadane(arr):
     max_sum = arr[0]
     current_sum = arr[0]
 
+    start = 0
+    end = 0
+    temp_start = 0
+
     for i in range(1,len(arr)):
         current_element = arr[i]
         
@@ -33,9 +37,12 @@ def kadane(arr):
             current_sum = current_sum + current_element
         else:
             current_sum = current_element
-        
+            temp_start = arr[i]
+            
         if current_sum > max_sum:
             max_sum = current_sum
-    return max_sum
+            start = temp_start
+            end = arr[i]
+    return (f"{max_sum} => {start} : {end}")
     
 print(kadane([-33,-11,5,-4,9]))
