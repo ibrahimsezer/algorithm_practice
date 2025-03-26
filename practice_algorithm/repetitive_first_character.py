@@ -1,8 +1,12 @@
-input = "helloworld"
-seen_chars = set()
+def first_repeated_char(s):
+    seen_chars = set()
+    for char in s:
+        if char in seen_chars:
+            return char
+        seen_chars.add(char)
+    return None
 
-for char in input:
-    if char in seen_chars:
-        print(f"first character: {char}")
-        break
-    seen_chars.add(char)
+print(first_repeated_char("helloworld"))
+print(first_repeated_char("python"))
+print(first_repeated_char("algorithm"))
+
