@@ -30,6 +30,10 @@ class Product {
   double totalPrice(double price, int amount) {
     return price * amount;
   }
+
+  double discount(double discount) {
+    return price - (price / discount);
+  }
 }
 
 class Book extends Product {
@@ -67,12 +71,33 @@ class Electronic extends Product {
   }
 }
 
+class Clothing extends Product {
+  final String size;
+  final String color;
+  final String material;
+
+  Clothing(String name, int stockAmount, double price, this.size, this.color,
+      this.material)
+      : super(name, stockAmount, price);
+  @override
+  void getInfo() {
+    super.getInfo();
+    print("size $size color $color material $material");
+  }
+}
+
 void main() {
   Electronic el = Electronic("phone", 12, 1200, "nokia", "3310", 12);
-
+  Clothing cl = Clothing("shirt", 123, 100, "M", "black", "linen");
   el.increaseStock(12);
+  cl.increaseStock(12);
   el.decreaseStock(1);
+  cl.decreaseStock(1);
   el.extendWarranty(12);
+  print(el.discount(10));
+  print(cl.discount(10));
   print(el.totalPrice(el.price, el.stockAmount));
+  print(cl.totalPrice(cl.price, cl.stockAmount));
   el.getInfo();
+  cl.getInfo();
 }
