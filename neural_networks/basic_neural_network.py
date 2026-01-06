@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class NeuralNetwork:
@@ -45,3 +46,45 @@ error = (true_value - predict) ** 2
 
 print(f"Target: {true_value}, Prediction: {predict[0][0]:.4f}, Error: {error}")
 print(f"Error Squared: {error[0][0]:.4f}")
+
+print("Old Prediction:", nn.forward(np.array([[1, 1]])))
+
+nn.W1 = np.ones((2, 4)) * 5
+nn.b1 = np.zeros((1, 4))
+
+print("New Prediction:", nn.forward(np.array([[1, 1]])))
+
+
+def plot_decision_map(network):
+    # Create a 100x100 grid between 0 and 1
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    X, Y = np.meshgrid(x, y)
+
+    # Query the network for each point
+    Z = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        for j in range(X.shape[1]):
+            input_data = np.array([[X[i, j], Y[i, j]]])
+            Z[i, j] = network.forward(input_data)[0, 0]
+
+    # Plot the result
+    plt.contourf(X, Y, Z, cmap="viridis", levels=20)
+    plt.colorbar(label="Network Output (Probability)")
+    plt.title("Network Decision Map (Random Weights)")
+    plt.xlabel("Input 1")
+    plt.ylabel("Input 2")
+    plt.show()
+
+
+# Call the function
+plot_decision_map(nn)
+
+
+# ---
+
+inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+
+outputs = nn.forward(inputs)
+print("Inputs:\n", inputs)
+print("Outputs:\n", outputs)
