@@ -25,3 +25,23 @@ class NeuralNetwork:
         self.z3 = np.dot(self.a2, self.W3) + self.b3
         self.output = self.sigmoid(self.z3)
         return self.output
+
+
+nn = NeuralNetwork(input_size=2, hidden_size=4, output_size=1)
+
+X_test = np.array([[0, 1]])
+
+predict = nn.forward(X_test)
+
+print(f"Input : {X_test}")
+print(f"NN Prediction 0-1: {predict}")
+
+
+true_value = 1
+
+predict = nn.forward(np.array([[0, 1]]))
+
+error = (true_value - predict) ** 2
+
+print(f"Target: {true_value}, Prediction: {predict[0][0]:.4f}, Error: {error}")
+print(f"Error Squared: {error[0][0]:.4f}")
