@@ -6,19 +6,19 @@ import copy
 # Magic numbers'ı tek bir yerden yönetiyoruz.
 CONFIG = {
     "input_size": 3,  # Inputs: Food, Temp, Temp_Diff
-    "hidden_size": 8,
+    "hidden_size": 3,
     "output_size": 4,  # Actions: Wait, Eat, Heat, Cool
     "max_food": 100,
     "start_food_min": 40,
     "start_food_max": 70,
     "start_temp_min": 15,
     "start_temp_max": 30,
-    "decay_food": 2.0,  # Metabolic cost per turn
-    "decay_temp": 0.5,  # Natural cooling per turn
-    "action_eat_gain": 15.0,
+    "decay_food": 6.0,  # Metabolic cost per turn
+    "decay_temp": 1.5,  # Natural cooling per turn
+    "action_eat_gain": 7.0,
     "action_heat_val": 5.0,
     "action_cool_val": 5.0,
-    "action_energy_cost": 2.0,  # Cost of Heating/Cooling
+    "action_energy_cost": 3.0,  # Cost of Heating/Cooling
     "limit_starvation": 15,  # Death below this
     "limit_freeze": -5,  # Death below this
     "limit_burn": 45,  # Death above this
@@ -90,6 +90,7 @@ class SurvivalSimulation:
         # 1. Get Decision
         inputs = self.get_inputs()
         action = self.brain.decide(inputs)
+        action_limit = 1
 
         # 2. Record History
         self.history["food"].append(self.food)
@@ -101,16 +102,21 @@ class SurvivalSimulation:
         self.temp -= CONFIG["decay_temp"]
 
         # 4. Apply Action
+        if action_limit == 0:
+            action = 0
         if action == 0:  # Wait
             pass
         elif action == 1:  # Eat
             self.food += CONFIG["action_eat_gain"]
+            action_limit -= 1
         elif action == 2:  # Heat
             self.temp += CONFIG["action_heat_val"]
             self.food -= CONFIG["action_energy_cost"]
+            action_limit -= 1
         elif action == 3:  # Cool
             self.temp -= CONFIG["action_cool_val"]
             self.food -= CONFIG["action_energy_cost"]
+            action_limit -= 1
 
         # 5. Physics Clamping
         self.food = np.clip(self.food, 0, CONFIG["max_food"])
