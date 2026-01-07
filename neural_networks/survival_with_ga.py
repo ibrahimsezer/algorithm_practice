@@ -1,218 +1,306 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from basic_neural_network import NeuralNetwork
+import copy
 
-# --- SIMULATION LOGIC ---
+# --- CONFIGURATION (SİMÜLASYON AYARLARI) ---
+# Magic numbers'ı tek bir yerden yönetiyoruz.
+CONFIG = {
+    "input_size": 3,  # Inputs: Food, Temp, Temp_Diff
+    "hidden_size": 8,
+    "output_size": 4,  # Actions: Wait, Eat, Heat, Cool
+    "max_food": 100,
+    "start_food_min": 40,
+    "start_food_max": 70,
+    "start_temp_min": 15,
+    "start_temp_max": 30,
+    "decay_food": 2.0,  # Metabolic cost per turn
+    "decay_temp": 0.5,  # Natural cooling per turn
+    "action_eat_gain": 15.0,
+    "action_heat_val": 5.0,
+    "action_cool_val": 5.0,
+    "action_energy_cost": 2.0,  # Cost of Heating/Cooling
+    "limit_starvation": 15,  # Death below this
+    "limit_freeze": -5,  # Death below this
+    "limit_burn": 45,  # Death above this
+    "ideal_temp_min": 20,
+    "ideal_temp_max": 28,
+    "ideal_food_min": 50,
+}
 
 
-def run_simulation(agent, steps=100, return_history=False, fixed_start=False):
-    # Setup Scenario
-    if fixed_start:
-        food = 50
-        temp = 25
-    else:
-        food = np.random.randint(30, 80)
-        temp = np.random.randint(15, 30)
+# --- 1. THE BRAIN (Neural Network) ---
+class Brain:
+    def __init__(self):
+        self.W1 = np.random.randn(CONFIG["input_size"], CONFIG["hidden_size"])
+        self.b1 = np.zeros((1, CONFIG["hidden_size"]))
+        self.W2 = np.random.randn(CONFIG["hidden_size"], CONFIG["hidden_size"])
+        self.b2 = np.zeros((1, CONFIG["hidden_size"]))
+        self.W3 = np.random.randn(CONFIG["hidden_size"], CONFIG["output_size"])
+        self.b3 = np.zeros((1, CONFIG["output_size"]))
 
-    alive = True
-    steps_survived = 0
-    total_penalty = 0
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
 
-    history = {"food": [], "temp": [], "action": []}
+    def decide(self, inputs):
+        # Forward propagation
+        z1 = np.dot(inputs, self.W1) + self.b1
+        a1 = self.sigmoid(z1)
+        z2 = np.dot(a1, self.W2) + self.b2
+        a2 = self.sigmoid(z2)
+        z3 = np.dot(a2, self.W3) + self.b3
+        output = self.sigmoid(z3)
+        return np.argmax(output)  # Returns index of best action
 
-    for _ in range(steps):
-        if not alive:
-            if return_history:
-                # Pad with zeros for plotting
-                history["food"].append(0)
-                history["temp"].append(0)
-                history["action"].append(0)
-            continue
 
-        steps_survived += 1
+# --- 2. THE ENVIRONMENT (Physics & Rules) ---
+class SurvivalSimulation:
+    def __init__(self, brain, fixed_start=False):
+        self.brain = brain
+        self.alive = True
+        self.steps_survived = 0
+        self.total_penalty = 0
+        self.history = {"food": [], "temp": [], "action": []}
 
-        if return_history:
-            history["food"].append(food)
-            history["temp"].append(temp)
+        # Initialize State
+        if fixed_start:
+            self.food = 50.0
+            self.temp = 25.0
+        else:
+            self.food = float(
+                np.random.randint(CONFIG["start_food_min"], CONFIG["start_food_max"])
+            )
+            self.temp = float(
+                np.random.randint(CONFIG["start_temp_min"], CONFIG["start_temp_max"])
+            )
 
-        # --- IMPROVED INPUTS ---
-        # 1. Food (Normalized)
-        norm_food = food / 100.0
-        # 2. Temperature (Normalized)
-        norm_temp = temp / 50.0
-        # 3. Distance from Ideal Temp (Helpful feature for AI)
-        # Ideal is roughly 24. If temp is 24, diff is 0. If 10, diff is -0.5 approx.
-        temp_diff = (temp - 24) / 24.0
+    def get_inputs(self):
+        # Normalize inputs for the brain
+        norm_food = self.food / CONFIG["max_food"]
+        norm_temp = self.temp / 50.0
+        # Feature Engineering: Distance from ideal center (approx 24)
+        ideal_center = (CONFIG["ideal_temp_max"] + CONFIG["ideal_temp_min"]) / 2
+        temp_diff = (self.temp - ideal_center) / 24.0
 
-        inputs = np.array([[norm_food, norm_temp, temp_diff]])
+        return np.array([[norm_food, norm_temp, temp_diff]])
 
-        # Action Decision
-        output = agent.forward(inputs)
-        action = np.argmax(output)
+    def step(self):
+        if not self.alive:
+            return False
 
-        if return_history:
-            history["action"].append(action)
+        # 1. Get Decision
+        inputs = self.get_inputs()
+        action = self.brain.decide(inputs)
 
-        # --- DYNAMICS ---
-        # Reduced decay slightly to give them a chance
-        food -= 1.5
-        temp -= 0.3  # Slow cooling
+        # 2. Record History
+        self.history["food"].append(self.food)
+        self.history["temp"].append(self.temp)
+        self.history["action"].append(action)
 
-        if action == 1:  # Eat
-            food += 15
+        # 3. Apply Entropy (Natural Decay)
+        self.food -= CONFIG["decay_food"]
+        self.temp -= CONFIG["decay_temp"]
+
+        # 4. Apply Action
+        if action == 0:  # Wait
+            pass
+        elif action == 1:  # Eat
+            self.food += CONFIG["action_eat_gain"]
         elif action == 2:  # Heat
-            temp += 5.0
-            food -= 2.0  # Heating costs energy
+            self.temp += CONFIG["action_heat_val"]
+            self.food -= CONFIG["action_energy_cost"]
         elif action == 3:  # Cool
-            temp -= 5.0
-            food -= 2.0
+            self.temp -= CONFIG["action_cool_val"]
+            self.food -= CONFIG["action_energy_cost"]
 
-        food = np.clip(food, 0, 100)
-        temp = np.clip(temp, -20, 60)  # Wider physical limits
+        # 5. Physics Clamping
+        self.food = np.clip(self.food, 0, CONFIG["max_food"])
+        self.temp = np.clip(self.temp, -20, 60)
 
-        # --- NEW SCORING SYSTEM ---
-        step_penalty = 0
+        # 6. Check Life/Death & Calc Penalty
+        self.check_vital_signs()
 
-        # Penalty 1: Hunger
-        if food < 10:
-            step_penalty += 50
-            alive = False  # Starved
-        elif food < 30:
-            step_penalty += 2  # Mild hunger
+        self.steps_survived += 1
+        return self.alive
 
-        # Penalty 2: Temperature
-        # Wider survival range (-5 to 45), but narrow comfort zone
-        if temp < -5 or temp > 45:
-            step_penalty += 50
-            alive = False  # Frozen or Burned
-        elif temp < 20 or temp > 28:
-            step_penalty += 2  # Discomfort
+    def check_vital_signs(self):
+        penalty = 0
 
-        total_penalty += step_penalty
+        # Food Check
+        if self.food < CONFIG["limit_starvation"]:
+            self.alive = False
+            penalty += 100  # Heavy death penalty
+        elif self.food < CONFIG["ideal_food_min"]:
+            penalty += 2  # Discomfort penalty
 
-    # --- FITNESS CALCULATION ---
-    # Primary Goal: Stay alive as long as possible (steps_survived)
-    # Secondary Goal: Minimize penalty (discomfort)
-    # We square steps_survived to reward living longer exponentially
-    fitness = (steps_survived**2) - (total_penalty * 2)
+        # Temp Check
+        if self.temp < CONFIG["limit_freeze"] or self.temp > CONFIG["limit_burn"]:
+            self.alive = False
+            penalty += 100
+        elif (
+            self.temp < CONFIG["ideal_temp_min"] or self.temp > CONFIG["ideal_temp_max"]
+        ):
+            penalty += 2
 
-    return fitness, steps_survived, history
+        self.total_penalty += penalty
 
-
-# --- GENETIC ALGORITHM ---
-
-
-def crossover(parent1, parent2):
-    child = NeuralNetwork(input_size=3)  # Remember input size is 3 now
-    child.W1 = (parent1.W1 + parent2.W1) / 2
-    child.W2 = (parent1.W2 + parent2.W2) / 2
-    child.W3 = (parent1.W3 + parent2.W3) / 2
-    return child
+    def get_fitness(self):
+        # Formula: Reward for time alive - penalty for discomfort
+        return (self.steps_survived**2) - self.total_penalty
 
 
-def mutate(agent, rate=0.2, intensity=0.5):
-    if np.random.rand() < rate:
-        agent.W1 += np.random.randn(*agent.W1.shape) * intensity
-    if np.random.rand() < rate:
-        agent.W3 += np.random.randn(*agent.W3.shape) * intensity
+# --- 3. THE EVOLUTION (Genetic Algorithm) ---
+class GeneticAlgorithm:
+    def __init__(self, population_size=50):
+        self.pop_size = population_size
+        self.population = [Brain() for _ in range(self.pop_size)]
+        self.generation = 0
+        self.best_fitness_history = []
 
+    def evolve(self):
+        # 1. Evaluate All Brains
+        scores = []
+        for brain in self.population:
+            sim = SurvivalSimulation(brain)
+            for _ in range(100):  # Max 100 steps
+                if not sim.step():
+                    break
+            scores.append((sim.get_fitness(), brain))
 
-# --- MAIN ---
+        # Sort (Highest fitness first)
+        scores.sort(key=lambda x: x[0], reverse=True)
 
-POP_SIZE = 50
-GENERATIONS = 100
-population = [NeuralNetwork(input_size=3) for _ in range(POP_SIZE)]
-survival_log = []
+        # Log Best Fitness
+        best_fit = scores[0][0]
+        self.best_fitness_history.append(best_fit)
 
-print("--- Starting Improved Evolution ---")
+        # 2. Create Next Generation
+        new_pop = []
 
-for gen in range(GENERATIONS):
-    scores = []
+        # Elitism: Keep top 5
+        for i in range(5):
+            new_pop.append(scores[i][1])
 
-    for agent in population:
-        fit, survived, _ = run_simulation(agent, steps=100)
-        scores.append((fit, survived, agent))
+        # Breeding (Crossover + Mutation)
+        while len(new_pop) < self.pop_size:
+            parent1 = self.tournament_select(scores)
+            parent2 = self.tournament_select(scores)
 
-    scores.sort(key=lambda x: x[0], reverse=True)
+            child = self.crossover(parent1, parent2)
+            self.mutate(child)
+            new_pop.append(child)
 
-    best_survival = scores[0][1]
-    survival_log.append(best_survival)
+        self.population = new_pop
+        self.generation += 1
 
-    if gen % 10 == 0:
-        print(f"Gen {gen}: Max Steps Survived = {best_survival}/100")
+        return best_fit, scores[0][1]  # Return best fitness & best brain
 
-    # Elitism
-    new_population = [x[2] for x in scores[:10]]
-
-    while len(new_population) < POP_SIZE:
-        # Tournament Selection (Pick random 5, take best)
-        # This helps maintain diversity better than just picking top 10
-        candidates = [scores[np.random.randint(0, POP_SIZE)] for _ in range(5)]
+    def tournament_select(self, scores):
+        # Pick 5 random, return the best
+        candidates = [scores[np.random.randint(0, len(scores))] for _ in range(5)]
         candidates.sort(key=lambda x: x[0], reverse=True)
-        parent1 = candidates[0][2]
+        return candidates[0][1]
 
-        candidates = [scores[np.random.randint(0, POP_SIZE)] for _ in range(5)]
-        candidates.sort(key=lambda x: x[0], reverse=True)
-        parent2 = candidates[0][2]
+    def crossover(self, p1, p2):
+        child = Brain()
+        child.W1 = (p1.W1 + p2.W1) / 2
+        child.W2 = (p1.W2 + p2.W2) / 2
+        child.W3 = (p1.W3 + p2.W3) / 2
+        return child
 
-        child = crossover(parent1, parent2)
-        mutate(child, rate=0.3, intensity=0.6)  # High mutation initially
-        new_population.append(child)
+    def mutate(self, brain, rate=0.1):
+        if np.random.rand() < rate:
+            brain.W1 += np.random.randn(*brain.W1.shape) * 0.5
+        if np.random.rand() < rate:
+            brain.W3 += np.random.randn(*brain.W3.shape) * 0.5
 
-    population = new_population
 
-# --- VISUALIZATION ---
-best_agent = population[0]
-_, _, history = run_simulation(
-    best_agent, steps=100, return_history=True, fixed_start=True
-)
+# --- MAIN EXECUTION ---
+if __name__ == "__main__":
+    ga = GeneticAlgorithm(population_size=50)
+    best_brain = None
 
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+    print("--- EVOLUTION STARTED ---")
+    for gen in range(100):
+        fitness, brain = ga.evolve()
+        best_brain = brain
+        if gen % 10 == 0:
+            print(f"Gen {gen}: Fitness Score = {fitness:.2f}")
 
-# Graph 1: Survival Time
-ax1.plot(survival_log, color="blue", linewidth=2)
-ax1.set_title("Evolution of Survival Capability")
-ax1.set_ylabel("Steps Survived (Max 100)")
-ax1.set_xlabel("Generation")
-ax1.grid(True)
+    print("--- EVOLUTION COMPLETE ---")
 
-# Graph 2: Strategy
-steps = range(len(history["food"]))
-ax2.plot(steps, history["food"], label="Food", color="green")
-ax2.plot(steps, history["temp"], label="Temp", color="red")
+    # --- FINAL VISUALIZATION ---
+    # Run the best brain in a "Fixed Start" scenario for clear graph
+    sim = SurvivalSimulation(best_brain, fixed_start=True)
+    for _ in range(100):
+        if not sim.step():
+            break
 
-# Ideal Zones
-ax2.axhspan(20, 28, color="orange", alpha=0.15, label="Comfort Zone")
-ax2.axhspan(0, 10, color="black", alpha=0.1, label="Danger Zone")
-ax2.axhline(y=50, color="green", linestyle="--")
+    hist = sim.history
 
-# Actions
-actions = np.array(history["action"])
-ax2.scatter(
-    np.where(actions == 1)[0],
-    [history["food"][i] for i in np.where(actions == 1)[0]],
-    c="lime",
-    marker="^",
-    label="Eat",
-)
-ax2.scatter(
-    np.where(actions == 2)[0],
-    [history["temp"][i] for i in np.where(actions == 2)[0]],
-    c="darkred",
-    marker="^",
-    label="Heat",
-)
-ax2.scatter(
-    np.where(actions == 3)[0],
-    [history["temp"][i] for i in np.where(actions == 3)[0]],
-    c="blue",
-    marker="v",
-    label="Cool",
-)
+    # Plotting
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12))
 
-ax2.set_title("Best Agent Behavior")
-ax2.legend(loc="upper right")
-ax2.grid(True, alpha=0.3)
+    # 1. Training Curve
+    ax1.plot(ga.best_fitness_history, color="blue", linewidth=2)
+    ax1.set_title("Evolutionary Progress (Fitness over Generations)")
+    ax1.set_xlabel("Generation")
+    ax1.set_ylabel("Fitness Score")
+    ax1.grid(True)
 
-plt.tight_layout()
-plt.show()
+    # 2. Gameplay
+    steps = range(len(hist["food"]))
+    ax2.plot(steps, hist["food"], label="Food", color="green", linewidth=2)
+    ax2.plot(steps, hist["temp"], label="Temperature", color="red", linewidth=2)
+
+    # Add Limits/Zones
+    ax2.axhspan(
+        CONFIG["ideal_temp_min"],
+        CONFIG["ideal_temp_max"],
+        color="orange",
+        alpha=0.15,
+        label="Comfort Temp",
+    )
+    ax2.axhspan(
+        0, CONFIG["limit_starvation"], color="gray", alpha=0.2, label="Death Zone"
+    )
+    ax2.axhline(
+        CONFIG["ideal_food_min"],
+        color="green",
+        linestyle="--",
+        alpha=0.5,
+        label="Target Food",
+    )
+
+    # Add Action Markers
+    actions = np.array(hist["action"])
+    ax2.scatter(
+        np.where(actions == 1)[0],
+        [hist["food"][i] for i in np.where(actions == 1)[0]],
+        c="lime",
+        marker="^",
+        zorder=5,
+        label="Eat",
+    )
+    ax2.scatter(
+        np.where(actions == 2)[0],
+        [hist["temp"][i] for i in np.where(actions == 2)[0]],
+        c="darkred",
+        marker="^",
+        zorder=5,
+        label="Heat",
+    )
+    ax2.scatter(
+        np.where(actions == 3)[0],
+        [hist["temp"][i] for i in np.where(actions == 3)[0]],
+        c="blue",
+        marker="v",
+        zorder=5,
+        label="Cool",
+    )
+
+    ax2.set_title("Best Agent Strategy")
+    ax2.legend(loc="upper right")
+    ax2.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
