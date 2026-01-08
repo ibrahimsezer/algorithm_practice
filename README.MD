@@ -1,10 +1,11 @@
 # Algorithm Practice Collection
 
-A collection of Python implementations for common algorithmic problems and mathematical functions.
+A collection of Python, Dart implementations for common algorithmic problems and mathematical functions.
 
 ## Implemented Algorithms
 
 ### Algorithm Practice
+
 Located in `algorithm_practice/`
 
 1. **Kadane's Algorithm** (`kadane_algorithm.py`)
@@ -38,6 +39,7 @@ Located in `algorithm_practice/`
    - Time Complexity: O(n)
 
 ### Mathematical Functions
+
 Located in `math_functions/`
 
 1. **Fibonacci Sequence** (`fibonacci.py`)
@@ -56,11 +58,33 @@ Located in `math_functions/`
    - Time Complexity: O(log min(a,b))
 
 ### Object-Oriented Programming Practice
+
 Located in `oop_practice/`
 
 1. **Exercise** (`exercise.dart`)
    - Contains Dart implementations of OOP concepts
    - Includes various class and object examples
+
+### Neural Networks & Genetic Algorithms
+
+Located in `neural_networks/`
+
+1. **Basic Neural Network** (`basic_neural_network.py`)
+   - Basic implementation of a Multi-Layer Perceptron (MLP)
+   - Demonstrates forward propagation and decision boundaries
+
+2. **XOR Problem Solver** (`xor_problem_with_ga.py`)
+   - Solves the XOR logical problem using Neuro-Evolution
+   - Uses Genetic Algorithm instead of Backpropagation for weight optimization
+
+3. **Survival Simulation** (`survival_with_ga.py`)
+   - Autonomous agent simulation managing vital signs (Hunger, Temperature)
+   - Evolves survival strategies over generations using Genetic Algorithms
+   - Includes visualization of evolutionary progress and agent behavior
+
+4. **Lunar Lander** (`lunar_lander/`)
+   - Implementation of a Lunar Lander control problem
+   - Uses Neural Networks to control thrusters for safe landing
 
 ## Usage
 
@@ -70,13 +94,16 @@ Each algorithm is implemented in its own file. To use any algorithm:
 2. Call the corresponding function with appropriate parameters
 
 ## Requirements
+
 - Python 3.x (for Python files)
 - Dart SDK (for Dart files)
 
 ## Testing
+
 Each file includes example test cases and print statements demonstrating usage.
 
 ## Project Structure
+
 ```
 python_function/
 ├── algorithm_practice/
@@ -90,6 +117,11 @@ python_function/
 │   ├── fibonacci.py
 │   ├── primality_test.py
 │   └── euclidean_algorithm.py
+├── neural_networks/
+│   ├── lunar_lander/
+│   ├── basic_neural_network.py
+│   ├── survival_with_ga.py
+│   └── xor_problem_with_ga.py
 └── oop_practice/
     └── exercise.dart
 ```
