@@ -12,6 +12,8 @@ This project contains a growing collection of AI implementations, ranging from b
 
 **Location:** `neural_networks/basic_nn/`
 
+![Basic Neural Network Laboratory](https://raw.githubusercontent.com/ibrahimsezer/algorithm_practice/refs/heads/main/neural_networks/basic_nn/figure_basic_nn_1.png)
+
 An interactive educational tool to visualize how Deep Neural Networks learn. It allows you to drag a race car (the AI) between "Evolution" and "Gradient Descent".
 
 #### Key Features
