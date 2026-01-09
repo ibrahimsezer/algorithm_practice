@@ -1,127 +1,125 @@
 # Algorithm Practice Collection
 
-A collection of Python, Dart implementations for common algorithmic problems and mathematical functions.
+A collection of Python and Dart implementations for common algorithmic problems, mathematical functions, and **Advanced Neural Network Simulations**.
 
-## Implemented Algorithms
+---
 
-### Algorithm Practice
+## 🧠 Neural Networks & Artificial Intelligence
 
-Located in `algorithm_practice/`
+This project contains a growing collection of AI implementations, ranging from basic algorithms to complex evolutionary simulations.
 
-1. **Kadane's Algorithm** (`kadane_algorithm.py`)
-   - Finds the contiguous subarray with the maximum sum
-   - Returns both the maximum sum and the start/end indices
-   - Time Complexity: O(n)
+### 1. Basic Neural Network Laboratory (✨ NEW & UPGRADE)
 
-2. **Longest Common Prefix** (`longest_common_prefix.py`)
-   - Finds the longest common prefix shared by all strings in an array
-   - Returns empty string if no common prefix exists
-   - Time Complexity: O(S) where S is the sum of all characters in all strings
+**Location:** `neural_networks/basic_nn/`
 
-3. **First Repeated Character** (`repetitive_first_character.py`)
-   - Finds the first repeating character in a string
-   - Returns None if no character repeats
-   - Time Complexity: O(n²)
+An interactive educational tool to visualize how Deep Neural Networks learn. It allows you to drag a race car (the AI) between "Evolution" and "Gradient Descent".
 
-4. **Second Largest Element** (`second_largest_element.py`)
-   - Finds the second largest element in an array of integers
-   - Handles edge cases like empty arrays or arrays with less than 2 elements
-   - Time Complexity: O(n)
+#### Key Features
 
-5. **Longest Substring Without Repeat** (`long_subs_without_repeat.py`)
-   - Finds the length of the longest substring without repeating characters
-   - Returns the substring and its length
-   - Time Complexity: O(n)
+* **Dual Learning Strategies**:
+  * **Backpropagation (Gradient Descent)**: Uses Calculus to mathematically optimize weights closer to the target (Fast & Precise).
+  * **Genetic Mutation (Evolution)**: Randomly modifies weights to "explore" new solutions (Chaotic & Creative).
+* **Dynamic Architecture**: The `NeuralNetwork` class (`brain.py`) supports any list-based layer structure (e.g., `[2, 8, 8, 1]`).
+* **Real-time Visualization**:
+  * **Decision Boundary**: A Heatmap showing the AI's "World View" (`laboratory.py`).
+  * **Network Anatomy**: Visualizes neurons, layers, and connection weights.
 
-6. **Reverse String** (`reverse_string.py`)
-   - Reverses the order of words in a given string
-   - Preserves word order while reversing the overall string
-   - Time Complexity: O(n)
+#### 📊 System Architecture
 
-### Mathematical Functions
-
-Located in `math_functions/`
-
-1. **Fibonacci Sequence** (`fibonacci.py`)
-   - Implements the Fibonacci sequence generator
-   - F(n) = F(n-1) + F(n-2), where F(0)=0, F(1)=1
-   - Time Complexity: O(n)
-
-2. **Primality Test** (`primality_test.py`)
-   - Checks if a given number is prime
-   - Uses optimized square root method
-   - Time Complexity: O(√n)
-
-3. **Euclidean Algorithm** (`euclidean_algorithm.py`)
-   - Finds the Greatest Common Divisor (GCD) of two numbers
-   - Uses the Euclidean algorithm method
-   - Time Complexity: O(log min(a,b))
-
-### Object-Oriented Programming Practice
-
-Located in `oop_practice/`
-
-1. **Exercise** (`exercise.dart`)
-   - Contains Dart implementations of OOP concepts
-   - Includes various class and object examples
-
-### Neural Networks & Genetic Algorithms
-
-Located in `neural_networks/`
-
-1. **Basic Neural Network** (`basic_neural_network.py`)
-   - Basic implementation of a Multi-Layer Perceptron (MLP)
-   - Demonstrates forward propagation and decision boundaries
-
-2. **XOR Problem Solver** (`xor_problem_with_ga.py`)
-   - Solves the XOR logical problem using Neuro-Evolution
-   - Uses Genetic Algorithm instead of Backpropagation for weight optimization
-
-3. **Survival Simulation** (`survival_with_ga.py`)
-   - Autonomous agent simulation managing vital signs (Hunger, Temperature)
-   - Evolves survival strategies over generations using Genetic Algorithms
-   - Includes visualization of evolutionary progress and agent behavior
-
-4. **Lunar Lander** (`lunar_lander/`)
-   - Implementation of a Lunar Lander control problem
-   - Uses Neural Networks to control thrusters for safe landing
-
-## Usage
-
-Each algorithm is implemented in its own file. To use any algorithm:
-
-1. Import the specific file
-2. Call the corresponding function with appropriate parameters
-
-## Requirements
-
-- Python 3.x (for Python files)
-- Dart SDK (for Dart files)
-
-## Testing
-
-Each file includes example test cases and print statements demonstrating usage.
-
-## Project Structure
-
+```mermaid
+graph TD
+    User([User]) -->|Click 'Train'| Backprop[Backpropagation<br/>(Gradient Descent)]
+    User -->|Click 'Mutate'| Genetic[Genetic Mutation<br/>(Random Walk)]
+    
+    Backprop -->|Update Weights| Brain[NeuralNetwork Class<br/>(brain.py)]
+    Genetic -->|Update Weights| Brain
+    
+    Brain -->|Forward Pass| Prediction
+    
+    subgraph Visualization [Matplotlib Loop]
+        Decision[Decision Boundary Map]
+        Structure[Network Anatomy]
+    end
+    
+    Brain -.-> Visualization
+    Visualization ==>|Visual Feedback| User
 ```
+
+#### How to Run
+
+```bash
+python neural_networks/basic_nn/experiment_table.py
+```
+
+---
+
+### 2. Survival Simulation (Modular Genetic Algorithm)
+
+**Location:** `neural_networks/survival_ga/`
+
+A complex simulation where autonomous agents struggle to survive in a hostile environment. They must balance hunger and temperature, learning strategies over generations.
+
+* **Modules**: `brain.py` (Logic), `simulation.py` (Environment), `main.py` (Runner).
+
+---
+
+### 3. Legacy Implementations
+
+* **Lunar Lander**: `neural_networks/lunar_lander/` - Control logic for landing.
+* **XOR Solver**: `neural_networks/xor_problem_with_ga.py` - Early genetic algorithm test.
+
+---
+
+## 📂 Project Structure
+
+```text
 python_function/
-├── algorithm_practice/
+├── algorithm_practice/         # Common coding interview problems
 │   ├── kadane_algorithm.py
 │   ├── longest_common_prefix.py
 │   ├── repetitive_first_character.py
 │   ├── second_largest_element.py
 │   ├── long_subs_without_repeat.py
 │   └── reverse_string.py
-├── math_functions/
+├── math_functions/             # Pure mathematical algorithms
 │   ├── fibonacci.py
 │   ├── primality_test.py
 │   └── euclidean_algorithm.py
-├── neural_networks/
-│   ├── lunar_lander/
-│   ├── basic_neural_network.py
-│   ├── survival_with_ga.py
-│   └── xor_problem_with_ga.py
-└── oop_practice/
+├── neural_networks/            # AI & Machine Learning
+│   ├── basic_nn/               # [ACTIVE] Deep Learning Lab
+│   │   ├── brain.py            # Neural Network Class (Backprop + GA)
+│   │   ├── laboratory.py       # Visualization Utils
+│   │   └── experiment_table.py # Interactive Runner
+│   ├── survival_ga/            # [ACTIVE] Survival Simulation
+│   │   ├── main.py
+│   │   ├── brain.py
+│   │   └── simulation.py
+│   ├── lunar_lander/           # Lunar Lander Control
+│   └── basic_neural_network.py # Legacy MLP
+└── oop_practice/               # Object Oriented Design
     └── exercise.dart
 ```
+
+---
+
+## 💻 Implemented Algorithms (Classic)
+
+### Algorithm Practice
+
+* **Kadane's Algorithm**: O(n) Maximum Subarray Sum.
+* **Longest Common Prefix**: O(S) String manipulation.
+* **First Repeated Character**: O(n²) Search.
+* **Second Largest Element**: O(n) Array traversal.
+* **Longest Substring Without Repeat**: O(n) Sliding Window.
+* **Reverse String**: O(n) In-place reversal.
+
+### Mathematical Functions
+
+* **Fibonacci**: O(n) Sequence generation.
+* **Primality Test**: O(√n) Math optimization.
+* **Euclidean Algorithm**: O(log min(a,b)) GCD calculation.
+
+## Requirements
+
+* **Python 3.x**: `numpy`, `matplotlib`
+* **Dart SDK**: (For OOP practice files)
