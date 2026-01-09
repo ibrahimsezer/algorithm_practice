@@ -1,7 +1,6 @@
 # main.py
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
 from config import CONFIG
 from brain import Brain
 from simulation import SurvivalSimulation
