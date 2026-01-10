@@ -30,10 +30,10 @@ An interactive educational tool to visualize how Deep Neural Networks learn. It 
 
 ```mermaid
 graph TD
-    User([User]) -->|Click 'Train'| Backprop[Backpropagation<br/>(Gradient Descent)]
-    User -->|Click 'Mutate'| Genetic[Genetic Mutation<br/>(Random Walk)]
+    User([User]) -->|Click 'Train'| Backprop[Backpropagation (Gradient Descent)]
+    User -->|Click 'Mutate'| Genetic[Genetic Mutation (Random Walk)]
     
-    Backprop -->|Update Weights| Brain[NeuralNetwork Class<br/>(brain.py)]
+    Backprop -->|Update Weights| Brain[NeuralNetwork Class (brain.py)]
     Genetic -->|Update Weights| Brain
     
     Brain -->|Forward Pass| Prediction
